@@ -4,8 +4,8 @@ close all
 clear all
 clc
 
-E = 69e6; % (Pa)
-th = 2e-3; % (m)
+E = 72e9; % (Pa)
+th = 5e-3; % (m)
 poi = 0.33;
 
 D = (E*th^2)/(12*(1-po^2));
