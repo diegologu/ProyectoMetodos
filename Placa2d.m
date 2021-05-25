@@ -30,23 +30,23 @@ for i=1:942
     U(i,i+1) = 1;%derecha
     U(i,i-1) = 1;%izquierda
 
-    if i <= 682 %sector 1
+    if i <= 704 %sector 1
       body
-    elseif i <= 769 %sector 2
+    elseif i <= 794 %sector 2
       body
-    elseif i <= 823 %sector 3
+    elseif i <= 850 %sector 3
       body
-    elseif i <= 848 %sector 4
+    elseif i <= 876 %sector 4
       body
-    elseif i <= 871 %sector 5
+    elseif i <= 900 %sector 5
       body
-    elseif i <= 892 %sector 6
+    elseif i <= 922 %sector 6
       body
-    elseif i <= 911 %sector 7
+    elseif i <= 942 %sector 7
       body
-    elseif i <= 926 %sector 8
+    elseif i <= 958 %sector 8
       body
-    elseif i <= 938 %sector 9
+    elseif i <= 970 %sector 9
       body
     else %sector 10
       body
