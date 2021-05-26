@@ -1,39 +1,55 @@
 %By Diego Lopez
 
 close all
-clear all
+clear
 clc
 
-nodos = 978;
+nodes = 978;
 E = 72e9; % (Pa)
 th = 5e-3; % (m)
-poi = 0.33;
-
+po = 0.33;
 D = (E*th^2)/(12*(1-po^2));
 q = 33.6e3; %(N/m)
 
-%delta x  = delta y = h
+q_D = ones(nodes-2,1) * (q/D);
+%delta x  = delta y = h = 15mm
 
 h = 15e-3; % (m)
 
 global Z;
 global U;
-Z = zeros(nodos-2);
-U = zeros(nodos-2);
+Z = zeros(nodes);
+U = zeros(nodes);
 
 %BC
 U(1,1) = 0;
 U(1,end) = 0;
 
-for i=1:nodos
-  if i~=[1 32] %contrains
+for i=1:nodes
+  if ~ismember(i,[1 32]) %contrains
     U(i,i) = -4;%center
     sector = locator(i);
     if ~isVoidRight(i,sector)
       U(i,i+1) = 1;%right
     end
-    U(i, i+stepToAbove(i, sector)) = 1; %above
+    if ~isVoidAbove(i,sector)
+      U(i, i+stepToAbove(i, sector)) = 1; %above
+    end
+    if ~isVoidLeft(i,sector)
+      U(i,i-1) = 1;%left
+    end
+    if ~isVoidBelow(i,sector)
+      U(i, i-stepToBelow(i, sector)) = 1; %below
+    end
+  end
 end
+
+U(1,:) = [];
+U(:,1) = [];
+U(32,:) = [];
+U(:,32) = [];
+
+u = U\q_D;
 
 function sector = locator(i)
   %  Returns the sector where a given i is located.
@@ -65,9 +81,9 @@ function out = isVoidRight(i, sector)
     case 1
       out = mod(i,32) == 0;
     case 2
-      out = i==734:30:794;
+      out = ismember(i,734:30:794);
     case 3
-      out = i==[822 850];
+      out = ismember(i,[822 850]);
     case 4
       out = i==876;
     case 5
@@ -88,60 +104,125 @@ end
 function out = isVoidAbove(i, sector)
   switch sector
     case 1
-      out = i==[673 704];
+      out = ismember(i,[673 704]);
     case 2
-      out = i==[765 794];
+      out = ismember(i,[765 794]);
     case 3
-      out = i==[823 850];
+      out = ismember(i,[823 850]);
     case 4
-      out = i==[851 876];
+      out = ismember(i,[851 876]);
     case 5
-      out = i==[877 900];
+      out = ismember(i,[877 900]);
     case 6
-      out = i==[901 922];
+      out = ismember(i,[901 922]);
     case 7
-      out = i==[923 924 941 942];
+      out = ismember(i,[923 924 941 942]);
     case 8
-      out = i==[943 944 957 958];
+      out = ismember(i,[943 944 957 958]);
     case 9
-      out = i==[959 960 969 970];
+      out = ismember(i,[959 960 969 970]);
     case 10
       out = 1;
   end
 end
 
 function step = stepToAbove(i, sector)
-  if ~isVoidAbove(i,sector)
-    switch sector
-      case 1
-        if i==[674:703]
+  step = 1;
+  switch sector
+    case 1
+        if ismember(i,674:703)
           step = 31;
         else
           step = 32;
         end
-      case 2
-        if i==[766:793]
+    case 2
+        if ismember(i,766:793)
           step = 29;
         else
           step = 30;
         end
-      case 3
-        if i==[824:849]
+    case 3
+        if ismember(i,824:849)
           step = 27;
         else
           step = 28;
         end
-      case 4
+    case 4
         step = 25;
-      case 5
-        step = 23;
-      case 6
+    case 6
         step = 21;
-      case 7
+    case 7
         step = 18;
-      case 8
+    case 8
         step = 14;
-      case 9
+    case 9
         step = 10;
+   end
+end
+
+function out = isVoidLeft(i, sector)
+  switch sector
+    case 1
+      out = ismember(i,1:32:673);
+    case 2
+      out = ismember(i,705:30:765);
+    case 3
+      out = ismember(i,[795 822]);
+    case 4
+      out = i==851;
+    case 5
+      out = i==877;
+    case 6
+      out = i==901;
+    case 7
+      out = i==923;
+    case 8
+      out = i==943;
+    case 9
+      out = i==959;
+    case 10
+      out = i==971;
   end
+end
+
+function out = isVoidBelow(i, sector)
+  switch sector
+    case 1
+      out = ismember(i,2:31);
+    otherwise
+      out = false;
+  end
+end
+
+function step = stepToBelow(i, sector)
+  switch sector
+    case 1
+        step = 32;
+    case 2
+        if ismember(i,705:734)
+          step = 31;
+        else
+          step = 30;
+        end
+    case 3
+        if ismember(i,795:822)
+          step = 29;
+        else
+          step = 28;
+        end
+    case 4
+        step = 27;
+    case 5
+        step = 25;
+    case 6
+        step = 23;
+    case 7
+        step = 21;
+    case 8
+        step = 18;
+    case 9
+        step = 14;
+    case 10
+        step = 10;
+   end
 end
