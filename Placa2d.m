@@ -4,52 +4,48 @@ close all
 clear
 clc
 
+global nodes;
 nodes = 978;
 E = 72e9; % (Pa)
 th = 5e-3; % (m)
 po = 0.33;
 D = (E*th^2)/(12*(1-po^2));
-q = 33.6e3; %(N/m)
+q = 3.35; %(KN/m^2)
+q_D = ones(nodes-32,1) * (q/D);
+d = 0;
 
-q_D = ones(nodes-2,1) * (q/D);
-%delta x  = delta y = h = 15mm
-
-h = 15e-3; % (m)
-
-global Z;
-global U;
-Z = zeros(nodes);
-U = zeros(nodes);
-
-%BC
-U(1,1) = 0;
-U(1,end) = 0;
-
-for i=1:nodes
-  if ~ismember(i,[1 32]) %contrains
-    U(i,i) = -4;%center
-    sector = locator(i);
-    if ~isVoidRight(i,sector)
-      U(i,i+1) = 1;%right
-    end
-    if ~isVoidAbove(i,sector)
-      U(i, i+stepToAbove(i, sector)) = 1; %above
-    end
-    if ~isVoidLeft(i,sector)
-      U(i,i-1) = 1;%left
-    end
-    if ~isVoidBelow(i,sector)
-      U(i, i-stepToBelow(i, sector)) = 1; %below
-    end
-  end
+while d<0.1
+  q = q+0.005;
+  q_D = ones(nodes-32,1) * (q/D);
+  u = solver(q_D);
+  z = solver(u);
+  d = max(z);
 end
 
-U(1,:) = [];
-U(:,1) = [];
-U(32,:) = [];
-U(:,32) = [];
-
-u = U\q_D;
+function x = solver(B)
+  % A*x = B
+  global nodes;
+  A = zeros(nodes);
+  for i=33:nodes
+      A(i,i) = -4;%center
+      sector = locator(i);
+      if ~isVoidRight(i,sector)
+        A(i,i+1) = 1;%right
+      end
+      if ~isVoidAbove(i,sector)
+        A(i, i+stepToAbove(i, sector)) = 1; %above
+      end
+      if ~isVoidLeft(i,sector)
+        A(i,i-1) = 1;%left
+      end
+      if ~isVoidBelow(i,sector)
+        A(i, i-stepToBelow(i, sector)) = 1; %below
+      end
+  end
+  A(1:32,:) = [];
+  A(:,1:32) = [];
+  x = A\B;
+end
 
 function sector = locator(i)
   %  Returns the sector where a given i is located.
