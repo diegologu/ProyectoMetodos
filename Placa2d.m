@@ -5,8 +5,9 @@ clear
 clc
 
 global nodes;
+global constrains;
 nodes = 978;
-E = 72e9; % (Pa)
+E = 69e9; % (Pa)
 th = 5e-3; % (m)
 po = 0.33;
 D = (E*th^2)/(12*(1-po^2));
@@ -14,19 +15,29 @@ q = 3.35; %(KN/m^2)
 q_D = ones(nodes-32,1) * (q/D);
 d = 0;
 
+constrains =  [1:32 33 64 65 96 97 128 129 160 161 192 193 224 225 256 257 ...
+              288 289 320 321 352 353 384 385 416 417 448 449 480 481 512 ...
+              513 544 545 576 577 608 609 640 641 672 673 704 705 734 735 ...
+              764 765 794 795 822 823 850 851 876 877 900 901 922 923 942 ...
+              943 958 959 970:978];
+
 while d<0.1
-  q = q+0.005;
-  q_D = ones(nodes-32,1) * (q/D);
+  q = q+0.01;
+  q_D = ones(nodes-length(constrains),1) * (q/D);
   u = solver(q_D);
   z = solver(u);
   d = max(z);
 end
+disp('Max q:')
+disp(q)
 
 function x = solver(B)
   % A*x = B
   global nodes;
+  global constrains;
   A = zeros(nodes);
-  for i=33:nodes
+  for i=1:nodes
+    if ~ismember(i,constrains)
       A(i,i) = -4;%center
       sector = locator(i);
       if ~isVoidRight(i,sector)
@@ -41,9 +52,10 @@ function x = solver(B)
       if ~isVoidBelow(i,sector)
         A(i, i-stepToBelow(i, sector)) = 1; %below
       end
+    end
   end
-  A(1:32,:) = [];
-  A(:,1:32) = [];
+  A(constrains,:) = [];
+  A(:,constrains) = [];
   x = A\B;
 end
 
